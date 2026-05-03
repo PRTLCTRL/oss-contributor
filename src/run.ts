@@ -2,40 +2,42 @@ import { findContributionTargets } from "./issue-finder.js";
 import { launchAgents } from "./agent-launcher.js";
 
 async function run() {
-  console.log("=== OSS Contributor - Automated Open Source Contributions ===\n");
-  console.log(`Started at ${new Date().toISOString()}\n`);
+  console.log("=== OSS Contributor ===\n");
+  console.log(`Started at ${new Date().toISOString()}`);
+  console.log(`Fork owner: PRTLCTRL\n`);
 
   const issues = await findContributionTargets();
 
   if (issues.length === 0) {
-    console.log("No fixable issues found this run. Exiting.");
+    console.log("No issues to work on. Exiting.");
     return;
   }
 
-  console.log(`\nLaunching agents for ${issues.length} issues...\n`);
+  console.log(`\nLaunching agents for ${issues.length} issues (max 4 parallel)...\n`);
   const results = await launchAgents(issues);
 
   const succeeded = results.filter((r) => r.status === "finished");
   const failed = results.filter((r) => r.status === "error");
 
-  console.log("\n=== Run Summary ===");
-  console.log(`Total issues found: ${issues.length}`);
-  console.log(`Agents launched: ${results.length}`);
-  console.log(`Succeeded: ${succeeded.length}`);
-  console.log(`Failed: ${failed.length}`);
+  console.log("\n=== Summary ===");
+  console.log(`Issues targeted: ${issues.length}`);
+  console.log(`Agents completed: ${succeeded.length}`);
+  console.log(`Agents failed: ${failed.length}`);
 
   if (succeeded.length > 0) {
-    console.log("\nSuccessful contributions:");
-    for (const run of succeeded) {
-      console.log(`  - ${run.issue.repo.owner}/${run.issue.repo.repo}#${run.issue.issueNumber}: ${run.issue.title}`);
-      console.log(`    Agent ID: ${run.agentId}`);
+    console.log("\nCompleted:");
+    for (const agentRun of succeeded) {
+      console.log(`  ✓ ${agentRun.issue.repo.owner}/${agentRun.issue.repo.repo}#${agentRun.issue.issueNumber}`);
+      console.log(`    ${agentRun.issue.title}`);
+      console.log(`    Agent: ${agentRun.agentId}`);
     }
   }
 
   if (failed.length > 0) {
-    console.log("\nFailed attempts:");
-    for (const run of failed) {
-      console.log(`  - ${run.issue.repo.owner}/${run.issue.repo.repo}#${run.issue.issueNumber}: ${run.issue.title}`);
+    console.log("\nFailed:");
+    for (const agentRun of failed) {
+      console.log(`  ✗ ${agentRun.issue.repo.owner}/${agentRun.issue.repo.repo}#${agentRun.issue.issueNumber}`);
+      console.log(`    ${agentRun.issue.title}`);
     }
   }
 

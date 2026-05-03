@@ -1,52 +1,99 @@
 import { Agent } from "@cursor/sdk";
-import { CURSOR_API_KEY, MAX_CONCURRENT_AGENTS } from "./config.js";
+import { CURSOR_API_KEY, FORK_OWNER, MAX_CONCURRENT_AGENTS, TARGET_REPOS } from "./config.js";
 import type { CandidateIssue } from "./issue-finder.js";
 
 interface AgentRun {
   issue: CandidateIssue;
   agentId: string;
   status: "running" | "finished" | "error";
-  prUrl?: string;
 }
 
 function buildPromptForIssue(issue: CandidateIssue): string {
-  const repoSlug = `${issue.repo.owner}/${issue.repo.repo}`;
+  const repo = issue.repo;
+  const repoSlug = `${repo.owner}/${repo.repo}`;
 
-  return `You are contributing to the open source project ${repoSlug}.
+  return `You are an experienced open source contributor working on ${repoSlug} (${repo.language}).
+You are working on a fork at ${FORK_OWNER}/${repo.repo}. Your goal is to produce a merge-ready PR.
 
-## Your task
+---
 
-Fix the following GitHub issue and open a pull request:
+## PHASE 1: ASSESS BEFORE CODING
+
+Read the issue carefully. Before writing any code, determine:
+
+1. Is this issue clearly defined with reproducible steps or a clear expected behavior?
+2. Can you identify the likely file(s) and function(s) involved?
+3. Is the fix scope small enough for a single PR (< ~200 lines changed)?
+4. Does the project have tests you can run to validate?
+
+If the issue is too vague, too large, or requires infrastructure you can't access (databases, external services, specific hardware), STOP and explain why in a commit message. Do not submit broken or speculative code.
+
+---
+
+## PHASE 2: UNDERSTAND THE PROJECT
+
+Before making changes:
+
+1. Read CONTRIBUTING.md, README.md, and any docs/ folder
+2. Check the project's test framework and how to run tests
+3. Look at recent PRs to understand the code style and PR conventions
+4. Understand the build system: ${repo.buildCommand}
+5. Understand the test command: ${repo.testCommand}
+
+**Project-specific notes:** ${repo.contributionGuide}
+
+---
+
+## PHASE 3: THE ISSUE
 
 **Issue #${issue.issueNumber}: ${issue.title}**
 URL: ${issue.url}
 
-**Issue description:**
-${issue.body.slice(0, 4000)}
+**Description:**
+${issue.body.slice(0, 6000)}
 
-## Instructions
+---
 
-1. **Understand the issue thoroughly.** Read the issue description, understand the expected vs actual behavior, and identify the root cause.
+## PHASE 4: IMPLEMENT THE FIX
 
-2. **Find the relevant code.** Search the codebase for the files and functions related to this bug. Read them carefully.
+1. Create a branch named \`fix/issue-${issue.issueNumber}\` (or \`feat/\` if it's a feature)
+2. Make the minimal, targeted change. Follow the project's existing patterns exactly.
+3. Do NOT touch unrelated files. No drive-by refactors, no formatting changes, no dependency bumps.
 
-3. **Implement the fix.** Make the minimal, targeted change needed to fix the issue. Do NOT refactor unrelated code. Follow the project's existing code style exactly.
+---
 
-4. **Write or update tests.** If the project has tests, add a test case that would have caught this bug. Run the existing test suite to make sure nothing breaks.
+## PHASE 5: TEST (CRITICAL)
 
-5. **Build the project.** Run the build command to ensure your changes compile.
-${issue.repo.contributionGuide ? `\n6. **Project-specific guidance:** ${issue.repo.contributionGuide}` : ""}
+This is the most important phase. Your PR will be rejected without tests.
 
-## PR Guidelines
+1. Run the existing test suite: \`${repo.testCommand}\`
+2. If tests exist for the area you changed, make sure they pass
+3. Add a new test that covers your fix — it should fail without your change and pass with it
+4. If the project doesn't have tests in the area you're changing, write a minimal test following the project's testing patterns
+5. Run the full build: \`${repo.buildCommand}\`
 
-- Title: "fix: <concise description>" matching the project's convention
-- Body: Reference the issue with "Fixes #${issue.issueNumber}" so it auto-closes
-- Keep the diff small and focused. One issue = one fix.
-- Do NOT add unrelated changes, formatting fixes, or dependency bumps.
+---
 
-## Quality bar
+## PHASE 6: PR
 
-Your PR should be merge-ready. Maintainers should be able to review and merge it without asking for changes. If you cannot confidently fix this issue after investigation, explain why in a comment on the PR rather than submitting broken code.`;
+- Title: follow the project's commit/PR convention (check recent merged PRs)
+- Body must include:
+  - What the issue was
+  - What caused it
+  - What you changed and why
+  - How you tested it
+  - "Fixes ${repoSlug}#${issue.issueNumber}"
+- Keep the diff small and focused
+- If you changed anything visual/frontend, describe what changed visually
+
+---
+
+## HARD RULES
+
+- NEVER submit code you haven't tested
+- NEVER submit a PR if the build or tests fail
+- NEVER add comments explaining your changes in the code — the PR description is for that
+- If you realize mid-implementation the issue is more complex than expected, submit what you have with a clear note about what remains`;
 }
 
 async function launchAgentForIssue(issue: CandidateIssue): Promise<AgentRun> {
@@ -59,7 +106,7 @@ async function launchAgentForIssue(issue: CandidateIssue): Promise<AgentRun> {
     const result = await Agent.prompt(prompt, {
       apiKey: CURSOR_API_KEY,
       cloud: {
-        repos: [{ url: issue.repo.url }],
+        repos: [{ url: issue.repo.forkUrl }],
         autoCreatePR: true,
         skipReviewerRequest: true,
       },
@@ -88,7 +135,7 @@ export async function launchAgents(issues: CandidateIssue[]): Promise<AgentRun[]
 
   for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
     const batch = batches[batchIndex];
-    console.log(`\nBatch ${batchIndex + 1}/${batches.length} (${batch.length} agents):`);
+    console.log(`\nBatch ${batchIndex + 1}/${batches.length} (${batch.length} agents in parallel):`);
 
     const batchResults = await Promise.allSettled(
       batch.map((issue) => launchAgentForIssue(issue))

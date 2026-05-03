@@ -1,0 +1,35 @@
+name: Respond to PR Feedback
+
+on:
+  pull_request_review:
+    types: [submitted]
+  issue_comment:
+    types: [created]
+
+jobs:
+  respond:
+    if: >
+      (github.event_name == 'pull_request_review' && github.event.review.state == 'changes_requested') ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Respond to feedback
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          PR_REPO: ${{ github.repository }}
+          REVIEW_BODY: ${{ github.event.review.body || github.event.comment.body }}
+          REVIEWER: ${{ github.event.review.user.login || github.event.comment.user.login }}
+        run: npx tsx src/respond-to-feedback.ts

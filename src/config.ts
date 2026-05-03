@@ -77,13 +77,16 @@ Key packages: packages/client (TamboClient, MCP), packages/react (React hooks).`
   },
 };
 
+// Wave 3 issues
 export const HANDPICKED_ISSUES: HandpickedIssue[] = [
-  { repoKey: "dgraph", issueNumber: 9671 },
-  { repoKey: "ruflo", issueNumber: 1670 },
-  { repoKey: "ruflo", issueNumber: 1686 },
-  { repoKey: "graphify", issueNumber: 581 },
-  { repoKey: "tambo", issueNumber: 2747 },
-  { repoKey: "tambo", issueNumber: 2742 },
+  { repoKey: "ruflo", issueNumber: 1554 },   // plugin-code-intelligence: stub implementations
+  { repoKey: "ruflo", issueNumber: 1609 },   // security: outdated vitest devDependencies with CVEs
+  { repoKey: "graphify", issueNumber: 538 },  // manifest not saved on full rebuild
+  { repoKey: "graphify", issueNumber: 535 },  // Godot .gd files no longer detected after upgrade
+  { repoKey: "graphify", issueNumber: 522 },  // codex install writes bash-only hook, fails on Windows
+  { repoKey: "graphify", issueNumber: 539 },  // --update prune message ambiguous, needs denominator
+  { repoKey: "dgraph", issueNumber: 9529 },   // Sentry CORS errors, custom Allow-Headers
+  { repoKey: "tambo", issueNumber: 2802 },    // llamaIndex provider INTERNAL_ERROR
 ];
 
 export const MAX_CONCURRENT_AGENTS = 4;

@@ -77,27 +77,37 @@ ${issue.body.slice(0, 6000)}
 
 ---
 
-## PHASE 5: TEST (CRITICAL)
+## PHASE 5: TEST (be honest about what you actually ran)
 
-This is the most important phase. Your PR will be rejected without tests.
+Try to run the project's tests. Be specific and honest about what you actually did:
 
-1. Run the existing test suite: \`${repo.testCommand}\`
-2. If tests exist for the area you changed, make sure they pass
-3. Add a new test that covers your fix — it should fail without your change and pass with it
-4. If the project doesn't have tests in the area you're changing, write a minimal test following the project's testing patterns
-5. Run the full build: \`${repo.buildCommand}\`
+1. Try the existing test suite: \`${repo.testCommand}\`
+2. If it works, note which tests you ran and what passed
+3. If the test suite needs infrastructure you don't have (databases, external services, Docker), say so honestly
+4. If you wrote a new test, explain what it covers with a brief example
+5. Try the build: \`${repo.buildCommand}\`
+6. If something didn't work or you couldn't fully validate, be upfront about it
+
+DO NOT claim "all tests pass" unless you literally ran them and they did. It's better to say "I ran X and Y, couldn't run Z because it needs a running Dgraph instance" than to lie about coverage.
 
 ---
 
 ## PHASE 6: PR
 
-- Title: follow the project's commit/PR convention (check recent merged PRs)
-- Body must include:
-  - What the issue was
-  - What caused it
+Your PR tone matters. You are a contributor who's trying to get more involved with this project. Be:
+- **Humble and open** — you're submitting this for feedback, not declaring it perfect
+- **Specific about testing** — say exactly what you ran, not "all tests pass"
+- **Requesting review** — explicitly ask maintainers to point out anything you missed
+- **Honest about limitations** — if you're not 100% sure about something, say so
+
+PR body must include:
+  - What the issue was (brief)
+  - What you think caused it
   - What you changed and why
-  - How you tested it
+  - What you actually tested (specific commands and results)
+  - What you COULDN'T test and why
   - "Fixes ${repoSlug}#${issue.issueNumber}"
+  - End with something like "I'm trying to get more involved with this project — happy to iterate on this if anything looks off."
 - Keep the diff small and focused
 - If you changed anything visual/frontend, describe what changed visually
 
@@ -105,10 +115,12 @@ This is the most important phase. Your PR will be rejected without tests.
 
 ## HARD RULES
 
-- NEVER submit code you haven't tested
-- NEVER submit a PR if the build or tests fail
+- Be honest about what you tested and what you couldn't
+- NEVER claim "all tests pass" unless you ran them and watched them pass
+- NEVER submit a PR if you know the build is broken
 - NEVER add comments explaining your changes in the code — the PR description is for that
-- If you realize mid-implementation the issue is more complex than expected, submit what you have with a clear note about what remains`;
+- If you realize mid-implementation the issue is more complex than expected, submit what you have with a clear note about what remains
+- You are a contributor seeking feedback, not an authority declaring things fixed`;
 }
 
 async function launchAgentForIssue(issue: CandidateIssue): Promise<AgentRun> {

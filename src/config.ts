@@ -77,16 +77,16 @@ Key packages: packages/client (TamboClient, MCP), packages/react (React hooks).`
   },
 };
 
-// Wave 3 issues
+// Wave 4 issues
 export const HANDPICKED_ISSUES: HandpickedIssue[] = [
-  { repoKey: "ruflo", issueNumber: 1554 },   // plugin-code-intelligence: stub implementations
-  { repoKey: "ruflo", issueNumber: 1609 },   // security: outdated vitest devDependencies with CVEs
-  { repoKey: "graphify", issueNumber: 538 },  // manifest not saved on full rebuild
-  { repoKey: "graphify", issueNumber: 535 },  // Godot .gd files no longer detected after upgrade
-  { repoKey: "graphify", issueNumber: 522 },  // codex install writes bash-only hook, fails on Windows
-  { repoKey: "graphify", issueNumber: 539 },  // --update prune message ambiguous, needs denominator
-  { repoKey: "dgraph", issueNumber: 9529 },   // Sentry CORS errors, custom Allow-Headers
-  { repoKey: "tambo", issueNumber: 2802 },    // llamaIndex provider INTERNAL_ERROR
+  { repoKey: "ruflo", issueNumber: 1652 },   // AB test executor can't swap CLAUDE.md
+  { repoKey: "ruflo", issueNumber: 1608 },   // security: tar CVEs via bcrypt chain
+  { repoKey: "ruflo", issueNumber: 1504 },   // 106 agent definitions = 300K token bloat
+  { repoKey: "tambo", issueNumber: 988 },    // streaming status for nested objects/arrays
+  { repoKey: "tambo", issueNumber: 991 },    // auto interactables toggle on TamboProvider
+  { repoKey: "dgraph", issueNumber: 9687 },  // "invalid cond value" parsing regression
+  { repoKey: "dgraph", issueNumber: 9422 },  // duplicate JSON fields in mutations
+  { repoKey: "graphify", issueNumber: 536 },  // support unique output directories
 ];
 
 export const MAX_CONCURRENT_AGENTS = 4;

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx src/run.ts",
     "find-issues": "tsx src/issue-finder-cli.ts",
+    "fix-ci": "tsx src/fix-ci-failures.ts",
     "build": "tsc",
     "start": "node dist/run.js"
   },
